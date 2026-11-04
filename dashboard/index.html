@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service Discovery Dashboard</title>
+<style>
+:root {
+  --bg: #f4f6fa;
+  --panel: #ffffff;
+  --text: #1c2433;
+  --muted: #647089;
+  --line: #d9dfeb;
+  --good: #1a8f5a;
+  --good-bg: #e2f5ec;
+  --bad: #c93c3c;
+  --bad-bg: #fbe6e6;
+  --warn: #b7791f;
+  --warn-bg: #fdf1d8;
+  --info: #2f6fdb;
+  --info-bg: #e4edfc;
+  --node: #eef1f7;
+  --node-line: #aeb8cc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1422;
+    --panel: #161e31;
+    --text: #e6eaf4;
+    --muted: #8d99b5;
+    --line: #283250;
+    --good: #43c58a;
+    --good-bg: #123a2c;
+    --bad: #ee6a6a;
+    --bad-bg: #432024;
+    --warn: #e3b04b;
+    --warn-bg: #3d3216;
+    --info: #6ea0f5;
+    --info-bg: #1b2d55;
+    --node: #1f2942;
+    --node-line: #3b4870;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1422;
+  --panel: #161e31;
+  --text: #e6eaf4;
+  --muted: #8d99b5;
+  --line: #283250;
+  --good: #43c58a;
+  --good-bg: #123a2c;
+  --bad: #ee6a6a;
+  --bad-bg: #432024;
+  --warn: #e3b04b;
+  --warn-bg: #3d3216;
+  --info: #6ea0f5;
+  --info-bg: #1b2d55;
+  --node: #1f2942;
+  --node-line: #3b4870;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+header h1 { font-size: 17px; margin: 0; font-weight: 650; }
+header .sub { color: var(--muted); font-size: 12.5px; }
+header .spacer { flex: 1; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--info-bg);
+  color: var(--info);
+}
+.pill.live { background: var(--good-bg); color: var(--good); }
+.pill.lost { background: var(--bad-bg); color: var(--bad); }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.live .dot { animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }
+button.theme {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+main {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+  padding: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+section h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 650;
+}
+.span-12 { grid-column: span 12; }
+.span-8 { grid-column: span 8; }
+.span-7 { grid-column: span 7; }
+.span-6 { grid-column: span 6; }
+.span-5 { grid-column: span 5; }
+.span-4 { grid-column: span 4; }
+@media (max-width: 900px) {
+  .span-8, .span-7, .span-6, .span-5, .span-4 { grid-column: span 12; }
+}
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.card { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.card .v { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.card .k { font-size: 11.5px; color: var(--muted); }
+.note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 4px 8px 6px 0;
+}
+td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+.tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.tag.good { background: var(--good-bg); color: var(--good); }
+.tag.bad { background: var(--bad-bg); color: var(--bad); }
+.tag.warn { background: var(--warn-bg); color: var(--warn); }
+.tag.info { background: var(--info-bg); color: var(--info); }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+.muted { color: var(--muted); }
+.empty { color: var(--muted); padding: 18px 0; text-align: center; font-size: 13px; }
+#timeline { max-height: 330px; overflow-y: auto; }
+.ev { display: grid; grid-template-columns: 62px 74px 1fr; gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.ev:first-child { border-top: 0; }
+.ev .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ev .src { font-size: 11.5px; }
+.ev.bad .txt { color: var(--bad); }
+.ev.good .txt { color: var(--good); }
+.ev.warn .txt { color: var(--warn); }
+details { border-top: 1px solid var(--line); padding: 6px 0; }
+details:first-of-type { border-top: 0; }
+summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+summary .count { color: var(--muted); font-weight: 400; margin-left: 6px; }
+pre.flows {
+  margin: 8px 0 2px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre;
+}
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--text); font-family: inherit; }
+svg .sub { fill: var(--muted); font-size: 10.5px; }
+svg .name { font-size: 12.5px; font-weight: 600; }
+svg .link { stroke: var(--node-line); stroke-width: 3; stroke-linecap: round; }
+svg .link.down { stroke: var(--bad); stroke-dasharray: 6 6; }
+svg .link.unknown { opacity: 0.4; }
+svg .attach { stroke: var(--node-line); stroke-width: 1.5; opacity: 0.7; }
+svg .attach.active { stroke: var(--good); opacity: 1; stroke-width: 2.5; }
+svg rect.node { fill: var(--node); stroke: var(--node-line); stroke-width: 1.5; }
+svg rect.node.up { fill: var(--good-bg); stroke: var(--good); }
+svg rect.node.down { fill: var(--node); stroke: var(--node-line); opacity: 0.75; }
+svg rect.node.bad { fill: var(--bad-bg); stroke: var(--bad); }
+svg rect.node.failing { fill: var(--warn-bg); stroke: var(--warn); }
+svg rect.switch { fill: var(--info-bg); stroke: var(--info); stroke-width: 1.5; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Dynamic UDP Service Discovery</h1>
+  <span class="sub">SDN-Socket Programming dashboard</span>
+  <span class="spacer"></span>
+  <span id="status" class="pill"><span class="dot"></span><span id="status-text">connecting</span></span>
+  <button class="theme" id="theme" type="button">Theme</button>
+</header>
+<main>
+  <section class="span-8">
+    <h2>Network</h2>
+    <div id="topo"></div>
+    <div class="legend">
+      <span><i style="background:var(--good)"></i>registered server</span>
+      <span><i style="background:var(--node-line)"></i>not registered</span>
+      <span><i style="background:var(--warn)"></i>client failing</span>
+      <span><i style="background:var(--bad)"></i>blocked host or link down</span>
+    </div>
+  </section>
+  <section class="span-4">
+    <h2>Controller</h2>
+    <div class="cards" id="cards"></div>
+    <div class="note" id="cards-note"></div>
+  </section>
+  <section class="span-6">
+    <h2>Servers known to the controller</h2>
+    <div id="servers"></div>
+  </section>
+  <section class="span-6">
+    <h2>Clients</h2>
+    <div id="clients"></div>
+  </section>
+  <section class="span-7">
+    <h2>Event timeline</h2>
+    <div id="timeline"></div>
+  </section>
+  <section class="span-5">
+    <h2>Flow tables</h2>
+    <div id="flows"></div>
+  </section>
+</main>
+<script>
+(function () {
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var root = document.documentElement;
+  var saved = null;
+  try { saved = localStorage.getItem("sd-theme"); } catch (e) {}
+  if (saved) root.setAttribute("data-theme", saved);
+  document.getElementById("theme").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("sd-theme", next); } catch (e) {}
+  });
+
+  function el(tag, attrs, kids) {
+    var node = document.createElement(tag);
+    for (var k in attrs || {}) {
+      if (k === "text") node.textContent = attrs[k];
+      else if (k === "class") node.className = attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { node.appendChild(c); });
+    return node;
+  }
+  function svg(tag, attrs, text) {
+    var node = document.createElementNS(SVGNS, tag);
+    for (var k in attrs || {}) node.setAttribute(k, attrs[k]);
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function clock(t) {
+    if (!t) return "";
+    var d = new Date(t * 1000);
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+  function tag(text, tone) { return el("span", { "class": "tag " + tone, text: text }); }
+  function empty(text) { return el("div", { "class": "empty", text: text }); }
+
+  var POS = {
+    switches: { 1: [200, 180], 2: [380, 100], 3: [380, 260], 4: [560, 180] },
+    clients: [[60, 100], [60, 180], [60, 260]],
+    servers: [[700, 100], [700, 180], [700, 260]],
+    rogue: [380, 30]
+  };
+
+  function drawTopology(state) {
+    var host = document.getElementById("topo");
+    clear(host);
+    var L = state.layout;
+    var serverByName = {};
+    state.servers.forEach(function (s) { serverByName[s.name] = s; });
+    var clientByName = {};
+    state.clients.forEach(function (c) { clientByName[c.name] = c; });
+    var linkState = {};
+    state.links.forEach(function (l) { linkState[l.a + "-" + l.b] = l.state; });
+    var blockedMacs = {};
+    state.blocked.forEach(function (b) { blockedMacs[b.mac] = true; });
+
+    var s = svg("svg", { viewBox: "0 0 760 330", role: "img", "aria-label": "Network topology" });
+    var attachments = [];
+
+    L.links.forEach(function (l) {
+      var a = POS.switches[l.a], b = POS.switches[l.b];
+      var st = linkState[l.a + "-" + l.b] || "unknown";
+      s.appendChild(svg("line", { "class": "link " + st, x1: a[0], y1: a[1], x2: b[0], y2: b[1] }));
+    });
+
+    function hostNode(name, pos, kind) {
+      var info = L.hosts[name];
+      var sw = POS.switches[info.switch];
+      var cls = "node";
+      var sub = info.ip;
+      var active = false;
+      if (kind === "server") {
+        var sv = serverByName[name];
+        cls += sv && sv.status === "up" ? " up" : " down";
+        active = !!(sv && sv.status === "up");
+      } else if (kind === "client") {
+        var c = clientByName[name];
+        if (c && c.status === "failing") cls += " failing";
+        else if (c && c.status === "ok") cls += " up";
+        if (c && c.current && c.status === "ok") sub = "using " + c.current;
+        active = !!(c && c.status === "ok");
+      } else if (blockedMacs[info.mac]) {
+        cls += " bad";
+        sub = info.ip + " blocked";
+      }
+      s.appendChild(svg("line", { "class": "attach" + (active ? " active" : ""),
+        x1: pos[0], y1: pos[1], x2: sw[0], y2: sw[1] }));
+      attachments.push(function () {
+        s.appendChild(svg("rect", { "class": cls, x: pos[0] - 52, y: pos[1] - 22, width: 104, height: 44, rx: 8 }));
+        s.appendChild(svg("text", { "class": "name", x: pos[0], y: pos[1] - 3, "text-anchor": "middle" }, name));
+        s.appendChild(svg("text", { "class": "sub", x: pos[0], y: pos[1] + 13, "text-anchor": "middle" }, sub));
+      });
+    }
+
+    L.clients.forEach(function (n, i) { if (POS.clients[i]) hostNode(n, POS.clients[i], "client"); });
+    L.servers.forEach(function (n, i) { if (POS.servers[i]) hostNode(n, POS.servers[i], "server"); });
+    if (L.hosts.rogue) hostNode("rogue", POS.rogue, "rogue");
+
+    L.switches.forEach(function (d) {
+      var p = POS.switches[d];
+      attachments.push(function () {
+        s.appendChild(svg("rect", { "class": "switch", x: p[0] - 28, y: p[1] - 18, width: 56, height: 36, rx: 8 }));
+        s.appendChild(svg("text", { "class": "name", x: p[0], y: p[1] + 5, "text-anchor": "middle" }, "s" + d));
+      });
+    });
+    attachments.forEach(function (draw) { draw(); });
+    host.appendChild(s);
+  }
+
+  function drawCards(state) {
+    var host = document.getElementById("cards");
+    clear(host);
+    var st = state.stats || {};
+    var up = state.servers.filter(function (s) { return s.status === "up"; }).length;
+    var items = [
+      ["Servers registered", up],
+      ["Packet-ins (all)", st.packet_in !== undefined ? st.packet_in : "-"],
+      ["Packet-ins (adverts)", st.packet_in_advert !== undefined ? st.packet_in_advert : "-"],
+      ["Flow rules installed", st.flow_mods !== undefined ? st.flow_mods : "-"]
+    ];
+    items.forEach(function (it) {
+      host.appendChild(el("div", { "class": "card" }, [
+        el("div", { "class": "v", text: String(it[1]) }),
+        el("div", { "class": "k", text: it[0] })
+      ]));
+    });
+    document.getElementById("cards-note").textContent =
+      "Advert packet-ins stay near one per server because later adverts match installed flows and never reach the controller.";
+  }
+
+  function drawServers(state) {
+    var host = document.getElementById("servers");
+    clear(host);
+    if (!state.servers.length) { host.appendChild(empty("No server has advertised yet.")); return; }
+    var table = el("table", {}, [el("tr", {}, ["Server", "Address", "Attached to", "State", "Since"].map(function (h) {
+      return el("th", { text: h });
+    }))]);
+    state.servers.forEach(function (s) {
+      var stateCell = el("td", {}, [tag(s.status === "up" ? "registered" : "removed", s.status === "up" ? "good" : "bad")]);
+      if (s.reason) stateCell.appendChild(el("span", { "class": "muted", text: " " + s.reason }));
+      table.appendChild(el("tr", {}, [
+        el("td", { text: s.name }),
+        el("td", { "class": "mono", text: s.ip || "" }),
+        el("td", { text: s.switch !== null && s.switch !== undefined ? "s" + s.switch + " port " + s.port : "" }),
+        stateCell,
+        el("td", { "class": "muted", text: clock(s.since) })
+      ]));
+    });
+    host.appendChild(table);
+  }
+
+  function drawClients(state) {
+    var host = document.getElementById("clients");
+    clear(host);
+    if (!state.clients.length) { host.appendChild(empty("No client logs found.")); return; }
+    var table = el("table", {}, [el("tr", {}, ["Client", "Using", "Registry", "Recent", "RTT"].map(function (h) {
+      return el("th", { text: h });
+    }))]);
+    state.clients.forEach(function (c) {
+      var tone = c.status === "ok" ? "good" : (c.status === "failing" ? "warn" : "info");
+      var using = c.status === "ok" ? c.current : (c.status === "failing" ? "none reachable" : "waiting");
+      table.appendChild(el("tr", {}, [
+        el("td", { text: c.name }),
+        el("td", {}, [tag(using || "waiting", tone)]),
+        el("td", { text: c.known.length ? c.known.join(", ") : "empty" }),
+        el("td", { text: c.recent_pct === null ? "-" : c.recent_pct + "%" }),
+        el("td", { "class": "muted", text: c.rtt_ms === null ? "-" : c.rtt_ms + " ms" })
+      ]));
+    });
+    host.appendChild(table);
+  }
+
+  function drawTimeline(state) {
+    var host = document.getElementById("timeline");
+    clear(host);
+    if (!state.timeline.length) { host.appendChild(empty("Waiting for events.")); return; }
+    state.timeline.forEach(function (e) {
+      host.appendChild(el("div", { "class": "ev " + e.tone }, [
+        el("span", { "class": "t mono", text: clock(e.t) }),
+        el("span", { "class": "src muted", text: e.source }),
+        el("span", { "class": "txt", text: e.text })
+      ]));
+    });
+  }
+
+  var openFlows = {};
+  function drawFlows(state) {
+    var host = document.getElementById("flows");
+    var seen = {};
+    host.querySelectorAll("details").forEach(function (d) { seen[d.getAttribute("data-sw")] = d.open; });
+    for (var k in seen) openFlows[k] = seen[k];
+    clear(host);
+    if (!state.flows) {
+      host.appendChild(empty("Flow tables are not available. Run the dashboard on the Mininet machine with sudo to see them."));
+      return;
+    }
+    Object.keys(state.flows).sort().forEach(function (sw) {
+      var rows = state.flows[sw];
+      var d = el("details", { "data-sw": sw }, [
+        el("summary", { text: sw }, [el("span", { "class": "count", text: rows.length + " rules" })]),
+        el("pre", { "class": "flows", text: rows.join("\n") })
+      ]);
+      if (openFlows[sw]) d.open = true;
+      host.appendChild(d);
+    });
+  }
+
+  function setStatus(kind, text) {
+    var pill = document.getElementById("status");
+    pill.className = "pill " + kind;
+    document.getElementById("status-text").textContent = text;
+  }
+
+  function render(state) {
+    if (!state.has_data) setStatus("", "waiting for logs");
+    else if (state.live) setStatus("live", "live");
+    else setStatus("", "replay, last event " + clock(state.latest));
+    drawTopology(state);
+    drawCards(state);
+    drawServers(state);
+    drawClients(state);
+    drawTimeline(state);
+    drawFlows(state);
+  }
+
+  function poll() {
+    fetch("/api/state", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(render)
+      .catch(function () { setStatus("lost", "connection lost"); })
+      .then(function () { setTimeout(poll, 1000); });
+  }
+  poll();
+})();
+</script>
+</body>
+</html>

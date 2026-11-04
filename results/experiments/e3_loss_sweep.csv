@@ -1,0 +1,11 @@
+mode,loss_pct_per_link,run,request_success_rate,client_registry_expiries,controller_false_removals
+dynamic,0,0,1.0,0,0
+static,0,0,1.0,0,0
+dynamic,5,0,0.8212486064659977,0,0
+static,5,0,0.8161957090528519,0,0
+dynamic,10,0,0.6528379028379029,3,0
+static,10,0,0.612423652042385,0,0
+dynamic,20,0,0.41266266266266266,0,0
+static,20,0,0.4502242502242502,0,0
+dynamic,30,0,0.24528735632183907,0,0
+static,30,0,0.23954248366013073,0,0

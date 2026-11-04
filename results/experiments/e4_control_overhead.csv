@@ -1,0 +1,7 @@
+adv_interval_s,servers,adverts_sent_approx,advert_packet_ins,total_packet_ins,flow_mods
+1.0,1,33,3,135,34
+1.0,2,66,4,129,42
+1.0,3,99,5,136,50
+2.0,1,16,3,128,34
+2.0,2,33,2,132,42
+2.0,3,50,9,136,50
