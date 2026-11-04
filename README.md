@@ -56,7 +56,7 @@ not run on Python 3.10 or newer, which is why it gets its own Python 3.9 (downlo
 `uv` tool, so it works even on newer Ubuntu versions). Mininet things use the normal system
 Python. You never need to activate `venv/`, the scripts call it directly.
 
-Use a real Ubuntu install or VM. WSL2 does not have the Open vSwitch kernel module.
+Tested on Ubuntu running under WSL2 on Windows. A normal Ubuntu install or VM works too.
 
 ## Run it by hand (demo)
 
